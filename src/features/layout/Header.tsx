@@ -1,10 +1,12 @@
 'use client';
 
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { useUIStore } from '@/shared/store/uiStore';
 import { useEffect } from 'react';
 
 export function Header() {
     const { user, loadProfile, loading } = useAuthStore();
+    const { toggleSidebar } = useUIStore();
 
     useEffect(() => {
         loadProfile();
@@ -13,7 +15,17 @@ export function Header() {
     return (
         <header className="sticky top-0 z-40 bg-zgas-navy/80 backdrop-blur-md border-b border-white/10 px-6 py-4 flex items-center justify-between">
             {/* Saludo Mobile/Desktop */}
-            <div>
+            <div className="flex items-center gap-3">
+                {/* Mobile Menu Button */}
+                <button
+                    onClick={toggleSidebar}
+                    className="md:hidden text-zgas-lime hover:text-white transition-colors"
+                >
+                    <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
                 <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
                     {loading ? (
                         <span className="w-32 h-8 bg-white/10 animate-pulse rounded-lg block" />

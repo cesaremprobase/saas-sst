@@ -3,10 +3,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '../auth/store/authStore';
+import { useUIStore } from '@/shared/store/uiStore';
+
 
 export function Sidebar() {
     const pathname = usePathname();
     const { signOut } = useAuthStore();
+    const { isSidebarOpen, closeSidebar } = useUIStore();
 
     const handleSignOut = async () => {
         await signOut();
@@ -16,79 +19,103 @@ export function Sidebar() {
     const isActive = (path: string) => pathname === path;
 
     return (
-        <aside className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-zgas-navy border-r border-white/10 flex-col py-8 z-50">
-            {/* Logo Area */}
-            <div className="px-6 mb-12 flex items-center gap-3">
-                <div className="w-8 h-8 bg-zgas-lime rounded-lg flex items-center justify-center font-bold text-zgas-navy">
-                    Z
+        <>
+            {/* Mobile Overlay */}
+            {isSidebarOpen && (
+                <div
+                    onClick={closeSidebar}
+                    className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+                />
+            )}
+
+            {/* Sidebar */}
+            <aside className={`
+                fixed left-0 top-0 h-full w-64 bg-zgas-navy border-r border-white/10 flex flex-col py-8 z-50
+                transition-transform duration-300
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+                md:translate-x-0
+            `}>
+                {/* Logo Area */}
+                <div className="px-6 mb-12 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-zgas-lime rounded-lg flex items-center justify-center font-bold text-zgas-navy">
+                            Z
+                        </div>
+                        <span className="text-xl font-bold text-white tracking-tight">
+                            ZETA <span className="text-zgas-lime">SAFE</span>
+                        </span>
+                    </div>
+                    {/* Close Button Mobile */}
+                    <button onClick={closeSidebar} className="md:hidden text-white/60 hover:text-white">
+                        <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
-                <span className="text-xl font-bold text-white tracking-tight">
-                    ZETA <span className="text-zgas-lime">SAFE</span>
-                </span>
-            </div>
 
-            {/* Navigation */}
-            <nav className="w-full flex-1 px-4 space-y-2">
-                <Link href="/" passHref>
-                    <NavItem
-                        active={isActive('/')}
-                        icon={<path d="M22 12h-4l-3 9L9 3l-3 9H2" />}
-                        label="Cursos"
-                    />
-                </Link>
+                {/* Navigation */}
+                <nav className="w-full flex-1 px-4 space-y-2">
+                    <Link href="/" passHref onClick={() => closeSidebar()}>
+                        <NavItem
+                            active={isActive('/')}
+                            icon={<path d="M22 12h-4l-3 9L9 3l-3 9H2" />}
+                            label="Cursos"
+                        />
+                    </Link>
 
-                <Link href="/ranking" passHref>
-                    <NavItem
-                        active={isActive('/ranking')}
-                        // Usando un icono de Award/Trophy simplificado
-                        svgContent={<path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12" />}
-                        icon={<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />}
-                        label="Ranking"
-                    />
-                </Link>
+                    <Link href="/ranking" passHref onClick={() => closeSidebar()}>
+                        <NavItem
+                            active={isActive('/ranking')}
+                            // Usando un icono de Award/Trophy simplificado
+                            svgContent={<path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12" />}
+                            icon={<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />}
+                            label="Ranking"
+                        />
+                    </Link>
 
-                <Link href="/store" passHref>
-                    <NavItem
-                        active={isActive('/store')}
-                        icon={<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />}
-                        label="Tienda"
-                    />
-                </Link>
+                    <Link href="/store" passHref onClick={() => closeSidebar()}>
+                        <NavItem
+                            active={isActive('/store')}
+                            icon={<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />}
+                            label="Tienda"
+                        />
+                    </Link>
 
-                <Link href="/profile" passHref>
-                    <NavItem
-                        active={isActive('/profile')}
-                        icon={<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />}
-                        circleHeader
-                        label="Mi Perfil"
-                    />
-                </Link>
+                    <Link href="/profile" passHref onClick={() => closeSidebar()}>
+                        <NavItem
+                            active={isActive('/profile')}
+                            icon={<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />}
+                            circleHeader
+                            label="Mi Perfil"
+                        />
+                    </Link>
 
-                <Link href="/community" passHref>
-                    <NavItem
-                        active={isActive('/community')}
-                        icon={<path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />}
-                        label="Comunidad"
-                    />
-                </Link>
-            </nav>
+                    <Link href="/community" passHref onClick={() => closeSidebar()}>
+                        <NavItem
+                            active={isActive('/community')}
+                            icon={<path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />}
+                            label="Comunidad"
+                        />
+                    </Link>
+                </nav>
 
-            {/* Footer / Logout */}
-            <div className="w-full px-4 mt-auto">
-                <button
-                    onClick={handleSignOut}
-                    type="button"
-                    className="flex items-center gap-3 px-4 py-3 text-white/60 hover:text-white transition-colors w-full rounded-xl hover:bg-white/5 group"
-                >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                        <polyline points="16 17 21 12 16 7" />
-                        <line x1="21" y1="12" x2="9" y2="12" />
-                    </svg>
-                    <span className="font-medium">Salir</span>
-                </button>
-            </div>
-        </aside>
+                {/* Footer / Logout */}
+                <div className="w-full px-4 mt-auto">
+                    <button
+                        onClick={handleSignOut}
+                        type="button"
+                        className="flex items-center gap-3 px-4 py-3 text-white/60 hover:text-white transition-colors w-full rounded-xl hover:bg-white/5 group"
+                    >
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                        <span className="font-medium">Salir</span>
+                    </button>
+                </div>
+            </aside>
+        </>
     );
 }
 
