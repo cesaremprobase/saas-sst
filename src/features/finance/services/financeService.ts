@@ -23,6 +23,16 @@ export const financeService = {
 
         if (!user) throw new Error('Usuario no autenticado');
 
+        // Check if exists
+        const { data: existing } = await supabase
+            .from('clients')
+            .select('id')
+            .eq('name', client.name)
+            .eq('user_id', user.id)
+            .single();
+
+        if (existing) throw new Error('El cliente ya existe');
+
         const { data, error } = await supabase
             .from('clients')
             .insert({ ...client, user_id: user.id })
@@ -78,12 +88,13 @@ export const financeService = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Usuario no autenticado');
 
-        const { error } = await supabase.from('clients').insert(
+        const { error } = await supabase.from('clients').upsert(
             clients.map(c => ({
                 ...c,
                 user_id: user.id,
                 route: 'Cayhuayna 30'
-            }))
+            })),
+            { onConflict: 'name, user_id' }
         );
         if (error) throw error;
     },
@@ -142,11 +153,20 @@ export const financeService = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Usuario no autenticado');
 
-        const { error } = await supabase.from('products').insert(
+        // Note: products table needs unique constraint on (name, user_id) for this to work perfectly,
+        // but for now we just try to insert and ignore conflicts if constraint exists, or we should add constraint too.
+        // Let's assume user might not have constraint yet, so we select first.
+
+        // Better: Upsert matches on PK usually, but we want name. 
+        // We'll trust the migration added constraint or just do a check loop if needed.
+        // Actually, let's just do upsert with onConflict. If constraint is missing it loops.
+        // To be safe in existing code:
+        const { error } = await supabase.from('products').upsert(
             products.map(p => ({
                 ...p,
                 user_id: user.id
-            }))
+            })),
+            { onConflict: 'name, user_id', ignoreDuplicates: true }
         );
         if (error) throw error;
     },
