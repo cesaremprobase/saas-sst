@@ -59,30 +59,60 @@ export default function AdminDashboard() {
 
     const checkAdmin = async () => {
         try {
-            const role = await authService.getUserRole();
+            console.log('Starting checkAdmin...');
+
+            // Safety timeout for checkAdmin
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Timeout checking admin')), 10000)
+            );
+
+            const role = await Promise.race([
+                authService.getUserRole(),
+                timeoutPromise
+            ]) as string | null;
+
+            console.log('Role received:', role);
+
             if (role !== 'admin') {
+                console.log('Not admin, redirecting...');
                 router.push('/finance');
                 return;
             }
             setIsAdmin(true);
+            console.log('Is admin, loading data...');
             await loadData();
         } catch (error) {
             console.error('Error checking admin role:', error);
-            setLoading(false); // Ensure loading stops on error
+            alert('Error verificando administrador. ' + (error as any).message);
+            setLoading(false);
         }
     };
 
     const loadData = async () => {
         try {
+            console.log('Starting loadData...');
             setLoading(true);
-            await Promise.all([
-                loadDebts(),
-                loadDailyData(),
-                loadProductStats()
+
+            // Safety timeout to prevent infinite spinner
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Timeout loading data')), 15000)
+            );
+
+            await Promise.race([
+                Promise.all([
+                    loadDebts().then(() => console.log('Debts loaded')),
+                    // loadDailyData().then(() => console.log('Daily loaded')),
+                    // loadProductStats().then(() => console.log('Stats loaded'))
+                ]),
+                timeoutPromise
             ]);
+
+            console.log('Data loaded successfully');
         } catch (error) {
             console.error('Error loading dashboard data:', error);
+            alert('Error cargando datos: ' + (error as any).message);
         } finally {
+            console.log('Finished loading, setting loading=false');
             setLoading(false);
         }
     };
@@ -95,14 +125,23 @@ export default function AdminDashboard() {
     };
 
     useEffect(() => {
-        loadDailyData();
-        const interval = setInterval(() => {
-            loadDailyData();
-            // Also refresh stats occasionally
-            if (activeTab === 'overview' || activeTab === 'products') loadProductStats();
-        }, 10000); // 10 seconds polling
-        return () => clearInterval(interval);
+        console.log('Dashboard MOUNTED');
+        checkAdmin();
+        // const interval = setInterval(() => {
+        //     loadDailyData();
+        //     if (activeTab === 'overview' || activeTab === 'products') loadProductStats();
+        // }, 10000); 
+        // return () => clearInterval(interval);
     }, [selectedDate, activeTab]);
+
+    // ... (rest of code)
+
+    if (loading) return (
+        <div className="flex flex-col justify-center items-center h-screen bg-slate-950 gap-4">
+            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-cyan-500"></div>
+            <p className="text-cyan-500 animate-pulse font-mono">Cargando sistema...</p>
+        </div>
+    );
 
     const loadDailyData = async () => {
         const data = await financeService.getDailyRouteSheet(selectedDate);
