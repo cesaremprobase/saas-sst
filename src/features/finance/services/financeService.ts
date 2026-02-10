@@ -400,6 +400,11 @@ export const financeService = {
 
             const currentDebt = (c.initial_balance || 0) + (debtMap.get(c.id) || 0);
 
+            // Get descriptions for transactions with no items or just general info
+            const getNotes = (shift: string) => clientTrans
+                .filter(t => t.type === 'DELIVERY' && t.shift === shift && t.description)
+                .map(t => t.description);
+
             return {
                 id: c.id,
                 order_index: c.order_index,
@@ -410,7 +415,9 @@ export const financeService = {
                 paidT,
                 currentDebt,
                 itemsM: getItems('MORNING'),
-                itemsT: getItems('AFTERNOON')
+                itemsT: getItems('AFTERNOON'),
+                notesM: getNotes('MORNING'),
+                notesT: getNotes('AFTERNOON')
             };
         });
     }

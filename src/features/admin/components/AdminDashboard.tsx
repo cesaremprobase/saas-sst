@@ -65,7 +65,13 @@ export default function AdminDashboard() {
 
     useEffect(() => {
         loadDailyData();
-    }, [selectedDate]);
+        const interval = setInterval(() => {
+            loadDailyData();
+            // Also refresh stats occasionally
+            if (activeTab === 'overview' || activeTab === 'products') loadProductStats();
+        }, 10000); // 10 seconds polling
+        return () => clearInterval(interval);
+    }, [selectedDate, activeTab]);
 
     const loadDailyData = async () => {
         const data = await financeService.getDailyRouteSheet(selectedDate);
@@ -330,13 +336,22 @@ export default function AdminDashboard() {
                                                 </td>
 
                                                 <td className="p-2 border-r border-white/5">
-                                                    {(row.itemsM?.length > 0 || row.itemsT?.length > 0) ? (
+                                                    {(row.deliveredM > 0 || row.deliveredT > 0 || row.itemsM?.length > 0 || row.itemsT?.length > 0) ? (
                                                         <button
                                                             onClick={() => {
+                                                                const getDetails = (amount: number, items: any[], notes: string[]) => {
+                                                                    if (amount <= 0) return '';
+                                                                    let details = '';
+                                                                    if (items?.length) details += items.map((i: any) => `- ${i.quantity} ${i.product_name}`).join('\n') + '\n';
+                                                                    if (notes?.length) details += notes.map((n: string) => `📝 ${n}`).join('\n') + '\n';
+                                                                    if (!details) details = '(Sin detalle de productos)\n';
+                                                                    return details;
+                                                                }
+
                                                                 alert(
-                                                                    `DETALLE DE PRODUCTOS - ${row.name}\n\n` +
-                                                                    (row.itemsM?.length ? `MAÑANA (S/ ${row.deliveredM.toFixed(2)}):\n` + row.itemsM.map((i: any) => `- ${i.quantity} ${i.product_name}`).join('\n') + '\n\n' : '') +
-                                                                    (row.itemsT?.length ? `TARDE (S/ ${row.deliveredT.toFixed(2)}):\n` + row.itemsT.map((i: any) => `- ${i.quantity} ${i.product_name}`).join('\n') : '')
+                                                                    `DETALLE - ${row.name}\n\n` +
+                                                                    (row.deliveredM > 0 ? `🌅 MAÑANA (S/ ${row.deliveredM.toFixed(2)}):\n${getDetails(row.deliveredM, row.itemsM, row.notesM)}\n` : '') +
+                                                                    (row.deliveredT > 0 ? `🌇 TARDE (S/ ${row.deliveredT.toFixed(2)}):\n${getDetails(row.deliveredT, row.itemsT, row.notesT)}` : '')
                                                                 );
                                                             }}
                                                             className="w-full flex justify-center text-cyan-400 hover:text-white hover:scale-110 transition-all"
