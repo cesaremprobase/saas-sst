@@ -8,6 +8,7 @@ import { Client, Shift, Product } from '../types';
 import { INITIAL_CLIENTS } from '../data/initialClients';
 import { INITIAL_PRODUCTS } from '../data/initialProducts';
 import Fuse from 'fuse.js';
+import { getPeruDate } from '@/lib/utils/date';
 
 interface Props {
     date: string;

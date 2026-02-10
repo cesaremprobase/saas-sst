@@ -7,10 +7,16 @@ import { TransactionForm } from './TransactionForm';
 import { DayStats } from './DayStats';
 import { authService } from '../../auth/services/authService';
 import { useState, useEffect } from 'react';
+import { getPeruDate } from '@/lib/utils/date';
 
 export default function FinanceDashboard() {
     const router = useRouter();
     const { selectedDate, setDate } = useFinanceStore();
+
+    // Set default date to Peru time on mount if not set
+    useEffect(() => {
+        if (!selectedDate) setDate(getPeruDate());
+    }, []);
     const { transactions, stats, refresh } = useTransactions(selectedDate);
     const [isAdmin, setIsAdmin] = useState(false);
 

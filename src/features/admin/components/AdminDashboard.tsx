@@ -7,6 +7,7 @@ import { authService } from '../../auth/services/authService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { getPeruDate } from '@/lib/utils/date';
 
 interface ClientDebt {
     id: string;
@@ -22,7 +23,7 @@ export default function AdminDashboard() {
     const [filter, setFilter] = useState('');
     const [isAdmin, setIsAdmin] = useState(false);
     const [activeTab, setActiveTab] = useState<'overview' | 'daily' | 'debt' | 'products' | 'clients_manage' | 'products_manage' | 'reports'>('overview');
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
+    const [selectedDate, setSelectedDate] = useState(getPeruDate());
 
     // Data States
     const [dailyMoves, setDailyMoves] = useState<any[]>([]);
