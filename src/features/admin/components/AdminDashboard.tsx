@@ -58,40 +58,59 @@ export default function AdminDashboard() {
         checkAdmin();
     }, []);
 
+    // Debug State
+    const [debugLogs, setDebugLogs] = useState<string[]>([]);
+    const addLog = (msg: string) => setDebugLogs(prev => [...prev.slice(-4), `${new Date().toLocaleTimeString()}: ${msg}`]);
+
+    useEffect(() => {
+        addLog('Dashboard MOUNTED');
+        // Force critical check
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL) addLog('CRITICAL: Missing Supabase URL');
+
+        checkAdmin();
+        // const interval = setInterval(() => {
+        //     loadDailyData();
+        //     if (activeTab === 'overview' || activeTab === 'products') loadProductStats();
+        // }, 10000); 
+        // return () => clearInterval(interval);
+    }, [selectedDate, activeTab]);
+
     const checkAdmin = async () => {
         try {
-            console.log('Starting checkAdmin...');
+            addLog('Starting checkAdmin...');
 
             // Safety timeout for checkAdmin
             const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Timeout checking admin')), 10000)
+                setTimeout(() => reject(new Error('Timeout checking admin')), 8000)
             );
 
+            addLog('Calling authService.getUserRole...');
             const role = await Promise.race([
                 authService.getUserRole(),
                 timeoutPromise
             ]) as string | null;
 
-            console.log('Role received:', role);
+            addLog(`Role received: ${role}`);
 
             if (role !== 'admin') {
-                console.log('Not admin, redirecting...');
+                addLog('Not admin, redirecting...');
                 router.push('/finance');
                 return;
             }
             setIsAdmin(true);
-            console.log('Is admin, loading data...');
+            addLog('Is admin, loading data...');
             await loadData();
         } catch (error) {
             console.error('Error checking admin role:', error);
-            alert('Error verificando administrador. ' + (error as any).message);
+            addLog(`Error checkAdmin: ${(error as any).message}`);
+            alert('Error verificando administrador: ' + (error as any).message);
             setLoading(false);
         }
     };
 
     const loadData = async () => {
         try {
-            console.log('Starting loadData...');
+            addLog('Starting loadData...');
             setLoading(true);
 
             // Safety timeout to prevent infinite spinner
@@ -101,19 +120,20 @@ export default function AdminDashboard() {
 
             await Promise.race([
                 Promise.all([
-                    loadDebts().then(() => console.log('Debts loaded')),
-                    loadDailyData().then(() => console.log('Daily loaded')),
-                    loadProductStats().then(() => console.log('Stats loaded'))
+                    loadDebts().then(() => addLog('Debts loaded')),
+                    loadDailyData().then(() => addLog('Daily loaded')),
+                    loadProductStats().then(() => addLog('Stats loaded'))
                 ]),
                 timeoutPromise
             ]);
 
-            console.log('Data loaded successfully');
+            addLog('Data loaded successfully');
         } catch (error) {
             console.error('Error loading dashboard data:', error);
+            addLog(`Error loadData: ${(error as any).message}`);
             alert('Error cargando datos: ' + (error as any).message);
         } finally {
-            console.log('Finished loading, setting loading=false');
+            addLog('Finished loading, setting loading=false');
             setLoading(false);
         }
     };
@@ -125,22 +145,17 @@ export default function AdminDashboard() {
         setTotalReceivable(total);
     };
 
-    useEffect(() => {
-        console.log('Dashboard MOUNTED');
-        checkAdmin();
-        // const interval = setInterval(() => {
-        //     loadDailyData();
-        //     if (activeTab === 'overview' || activeTab === 'products') loadProductStats();
-        // }, 10000); 
-        // return () => clearInterval(interval);
-    }, [selectedDate, activeTab]);
-
     // ... (rest of code)
 
     if (loading) return (
-        <div className="flex flex-col justify-center items-center h-screen bg-slate-950 gap-4">
+        <div className="flex flex-col justify-center items-center h-screen bg-slate-950 gap-4 p-4">
             <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-cyan-500"></div>
-            <p className="text-cyan-500 animate-pulse font-mono">Cargando sistema...</p>
+            <p className="text-cyan-500 animate-pulse font-mono font-bold">Cargando sistema...</p>
+            <div className="w-full max-w-md bg-black/50 p-4 rounded text-xs font-mono text-green-400 h-32 overflow-y-auto border border-white/10">
+                {debugLogs.map((log, i) => (
+                    <div key={i} className="border-b border-white/5 pb-1 mb-1 last:border-0">{log}</div>
+                ))}
+            </div>
         </div>
     );
 
