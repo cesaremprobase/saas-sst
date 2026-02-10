@@ -383,10 +383,24 @@ export const financeService = {
         return clients.map(c => {
             const clientTrans = todayTrans?.filter(t => t.client_id === c.id) || [];
 
-            // Helper to get items for a shift
+            // Helper to get items for a shift (checking both relation and JSON column)
             const getItems = (shift: string) => clientTrans
                 .filter(t => t.type === 'DELIVERY' && t.shift === shift)
-                .flatMap(t => t.items || []);
+                .flatMap(t => {
+                    // 1. Try Relation (Newer data)
+                    if (t.items && t.items.length > 0) return t.items;
+
+                    // 2. Try JSON Column (Legacy/Direct data)
+                    if (t.products && Object.keys(t.products).length > 0) {
+                        return Object.entries(t.products).map(([name, qty]) => ({
+                            product_name: name,
+                            quantity: qty,
+                            total_price: 0 // We might not have price in JSON, but quantity is key
+                        }));
+                    }
+
+                    return [];
+                });
 
             const deliveredM = clientTrans.filter(t => t.type === 'DELIVERY' && t.shift === 'MORNING')
                 .reduce((sum, t) => sum + t.amount, 0);
