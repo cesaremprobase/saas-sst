@@ -451,7 +451,8 @@ export const financeService = {
                 itemsM: getItems('MORNING'),
                 itemsT: getItems('AFTERNOON'),
                 notesM: getNotes('MORNING'),
-                notesT: getNotes('AFTERNOON')
+                notesT: getNotes('AFTERNOON'),
+                transactions: clientTrans // Added for Edit Modal
             };
         });
     }

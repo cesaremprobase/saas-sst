@@ -17,6 +17,7 @@ interface ClientDebt {
 }
 
 import { EditTransactionModal } from '../../finance/components/EditTransactionModal';
+import { Transaction } from '../../finance/types';
 
 export default function AdminDashboard() {
     const router = useRouter();
@@ -36,7 +37,7 @@ export default function AdminDashboard() {
 
     // Modal State
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectedClientForEdit, setSelectedClientForEdit] = useState<{ name: string, transactions: any[] } | null>(null);
+    const [selectedClientForEdit, setSelectedClientForEdit] = useState<{ name: string, transactions: Transaction[] } | null>(null);
 
     // ... existing useEffects ...
 
@@ -101,8 +102,8 @@ export default function AdminDashboard() {
             await Promise.race([
                 Promise.all([
                     loadDebts().then(() => console.log('Debts loaded')),
-                    // loadDailyData().then(() => console.log('Daily loaded')),
-                    // loadProductStats().then(() => console.log('Stats loaded'))
+                    loadDailyData().then(() => console.log('Daily loaded')),
+                    loadProductStats().then(() => console.log('Stats loaded'))
                 ]),
                 timeoutPromise
             ]);
