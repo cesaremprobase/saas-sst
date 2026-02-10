@@ -23,12 +23,11 @@ export const financeService = {
 
         if (!user) throw new Error('Usuario no autenticado');
 
-        // Check if exists
+        // Check if exists globally (Shared DB)
         const { data: existing } = await supabase
             .from('clients')
             .select('id')
             .eq('name', client.name)
-            .eq('user_id', user.id)
             .single();
 
         if (existing) throw new Error('El cliente ya existe');
@@ -94,7 +93,7 @@ export const financeService = {
                 user_id: user.id,
                 route: 'Cayhuayna 30'
             })),
-            { onConflict: 'name, user_id' }
+            { onConflict: 'name' }
         );
         if (error) throw error;
     },
@@ -166,7 +165,7 @@ export const financeService = {
                 ...p,
                 user_id: user.id
             })),
-            { onConflict: 'name, user_id', ignoreDuplicates: true }
+            { onConflict: 'name', ignoreDuplicates: true }
         );
         if (error) throw error;
     },
