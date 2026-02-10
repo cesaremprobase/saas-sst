@@ -58,23 +58,33 @@ export default function AdminDashboard() {
     }, []);
 
     const checkAdmin = async () => {
-        const role = await authService.getUserRole();
-        if (role !== 'admin') {
-            router.push('/finance');
-            return;
+        try {
+            const role = await authService.getUserRole();
+            if (role !== 'admin') {
+                router.push('/finance');
+                return;
+            }
+            setIsAdmin(true);
+            await loadData();
+        } catch (error) {
+            console.error('Error checking admin role:', error);
+            setLoading(false); // Ensure loading stops on error
         }
-        setIsAdmin(true);
-        loadData();
     };
 
     const loadData = async () => {
-        setLoading(true);
-        await Promise.all([
-            loadDebts(),
-            loadDailyData(),
-            loadProductStats()
-        ]);
-        setLoading(false);
+        try {
+            setLoading(true);
+            await Promise.all([
+                loadDebts(),
+                loadDailyData(),
+                loadProductStats()
+            ]);
+        } catch (error) {
+            console.error('Error loading dashboard data:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const loadDebts = async () => {
