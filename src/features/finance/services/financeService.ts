@@ -291,6 +291,26 @@ export const financeService = {
         return balance;
     },
 
+    async updateTransaction(id: string, updates: Partial<Transaction>) {
+        const supabase = createClient();
+        const { error } = await supabase
+            .from('transactions')
+            .update(updates)
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
+    async deleteTransaction(id: string) {
+        const supabase = createClient();
+        const { error } = await supabase
+            .from('transactions')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
     // ==========================================
     // REPORTS (ADMIN)
     // ==========================================

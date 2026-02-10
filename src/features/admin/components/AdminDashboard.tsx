@@ -16,6 +16,8 @@ interface ClientDebt {
     debt: number;
 }
 
+import { EditTransactionModal } from '../../finance/components/EditTransactionModal';
+
 export default function AdminDashboard() {
     const router = useRouter();
     const [loading, setLoading] = useState(true);
@@ -31,6 +33,25 @@ export default function AdminDashboard() {
     const [dailyIncome, setDailyIncome] = useState(0);
     const [dailyDeliveryValue, setDailyDeliveryValue] = useState(0);
     const [totalReceivable, setTotalReceivable] = useState(0);
+
+    // Modal State
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedClientForEdit, setSelectedClientForEdit] = useState<{ name: string, transactions: any[] } | null>(null);
+
+    // ... existing useEffects ...
+
+    // ... loadData functions ...
+
+    // ... export functions ...
+
+    if (loading) return (
+        // ... loading spinner ...
+        <div className="flex justify-center items-center h-screen bg-slate-950">
+            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-cyan-500"></div>
+        </div>
+    );
+
+
 
     useEffect(() => {
         checkAdmin();
@@ -148,6 +169,21 @@ export default function AdminDashboard() {
 
     return (
         <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-cyan-500/30">
+            {/* Modal */}
+            {selectedClientForEdit && (
+                <EditTransactionModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => {
+                        setIsEditModalOpen(false);
+                        setSelectedClientForEdit(null);
+                    }}
+                    onUpdate={() => {
+                        loadDailyData(); // Refresh data after edit
+                    }}
+                    clientName={selectedClientForEdit.name}
+                    transactions={selectedClientForEdit.transactions}
+                />
+            )}
             {/* Navbar */}
             <nav className="border-b border-white/5 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -339,20 +375,11 @@ export default function AdminDashboard() {
                                                     {(row.deliveredM > 0 || row.deliveredT > 0 || row.itemsM?.length > 0 || row.itemsT?.length > 0) ? (
                                                         <button
                                                             onClick={() => {
-                                                                const getDetails = (amount: number, items: any[], notes: string[]) => {
-                                                                    if (amount <= 0) return '';
-                                                                    let details = '';
-                                                                    if (items?.length) details += items.map((i: any) => `- ${i.quantity} ${i.product_name}`).join('\n') + '\n';
-                                                                    if (notes?.length) details += notes.map((n: string) => `📝 ${n}`).join('\n') + '\n';
-                                                                    if (!details) details = '(Sin detalle de productos)\n';
-                                                                    return details;
-                                                                }
-
-                                                                alert(
-                                                                    `DETALLE - ${row.name}\n\n` +
-                                                                    (row.deliveredM > 0 ? `🌅 MAÑANA (S/ ${row.deliveredM.toFixed(2)}):\n${getDetails(row.deliveredM, row.itemsM, row.notesM)}\n` : '') +
-                                                                    (row.deliveredT > 0 ? `🌇 TARDE (S/ ${row.deliveredT.toFixed(2)}):\n${getDetails(row.deliveredT, row.itemsT, row.notesT)}` : '')
-                                                                );
+                                                                setSelectedClientForEdit({
+                                                                    name: row.name,
+                                                                    transactions: row.transactions || []
+                                                                });
+                                                                setIsEditModalOpen(true);
                                                             }}
                                                             className="w-full flex justify-center text-cyan-400 hover:text-white hover:scale-110 transition-all"
                                                         >

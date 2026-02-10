@@ -8,6 +8,8 @@ import { DayStats } from './DayStats';
 import { authService } from '../../auth/services/authService';
 import { useState, useEffect } from 'react';
 import { getPeruDate } from '@/lib/utils/date';
+import { EditTransactionModal } from './EditTransactionModal';
+import { Transaction } from '../types';
 
 export default function FinanceDashboard() {
     const router = useRouter();
@@ -19,6 +21,10 @@ export default function FinanceDashboard() {
     }, []);
     const { transactions, stats, refresh } = useTransactions(selectedDate);
     const [isAdmin, setIsAdmin] = useState(false);
+
+    // Edit State
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
     useEffect(() => {
         authService.getUserRole().then(role => setIsAdmin(role === 'admin'));
@@ -95,12 +101,38 @@ export default function FinanceDashboard() {
                                     <p className={`font-mono font-bold ${t.type === 'DELIVERY' ? 'text-blue-700' : 'text-green-700'}`}>
                                         {t.type === 'PAYMENT' ? '+' : '-'} S/ {t.amount.toFixed(2)}
                                     </p>
+                                    <button
+                                        onClick={() => {
+                                            setEditingTransaction(t);
+                                            setIsEditModalOpen(true);
+                                        }}
+                                        className="text-xs text-slate-400 hover:text-cyan-600 underline mt-1 block w-full text-right"
+                                    >
+                                        Editar
+                                    </button>
                                 </div>
                             </div>
                         ))}
                     </div>
                 </section>
             </main>
+
+            {editingTransaction && (
+                <EditTransactionModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => {
+                        setIsEditModalOpen(false);
+                        setEditingTransaction(null);
+                    }}
+                    onUpdate={() => {
+                        refresh();
+                        setIsEditModalOpen(false);
+                        setEditingTransaction(null);
+                    }}
+                    clientName={editingTransaction.client?.name || 'Cliente'}
+                    transactions={[editingTransaction]}
+                />
+            )}
         </div>
     );
 }

@@ -30,6 +30,7 @@ export interface Transaction {
   user_id: string;
   client?: Client; // Join
   products?: Record<string, number>; // e.g. { PAN: 10, MOLDE: 2 }
+  items?: { quantity: number; product_name: string; price?: number }[]; // Relation
 }
 
 export interface DailyStats {
