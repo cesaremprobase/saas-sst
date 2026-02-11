@@ -16,8 +16,8 @@ interface ClientDebt {
     debt: number;
 }
 
-import { EditTransactionModal } from '../../finance/components/EditTransactionModal';
-import { Transaction } from '../../finance/types';
+// import { EditTransactionModal } from '../../finance/components/EditTransactionModal';
+// import { Transaction } from '../../finance/types';
 
 export default function AdminDashboard() {
     const router = useRouter();
@@ -36,8 +36,8 @@ export default function AdminDashboard() {
     const [totalReceivable, setTotalReceivable] = useState(0);
 
     // Modal State
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [selectedClientForEdit, setSelectedClientForEdit] = useState<{ name: string, transactions: Transaction[] } | null>(null);
+    // const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    // const [selectedClientForEdit, setSelectedClientForEdit] = useState<{ name: string, transactions: Transaction[] } | null>(null);
 
     // ... existing useEffects ...
 
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
     const addLog = (msg: string) => setDebugLogs(prev => [...prev.slice(-4), `${new Date().toLocaleTimeString()}: ${msg}`]);
 
     useEffect(() => {
-        addLog('Dashboard MOUNTED');
+        addLog('Dashboard MOUNTED (Edit DISABLED)');
         // Force critical check
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL) addLog('CRITICAL: Missing Supabase URL');
 
@@ -204,7 +204,7 @@ export default function AdminDashboard() {
     return (
         <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-cyan-500/30">
             {/* Modal */}
-            {selectedClientForEdit && (
+            {/* {selectedClientForEdit && (
                 <EditTransactionModal
                     isOpen={isEditModalOpen}
                     onClose={() => {
@@ -217,7 +217,7 @@ export default function AdminDashboard() {
                     clientName={selectedClientForEdit.name}
                     transactions={selectedClientForEdit.transactions}
                 />
-            )}
+            )} */}
             {/* Navbar */}
             <nav className="border-b border-white/5 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -409,11 +409,12 @@ export default function AdminDashboard() {
                                                     {(row.deliveredM > 0 || row.deliveredT > 0 || row.itemsM?.length > 0 || row.itemsT?.length > 0) ? (
                                                         <button
                                                             onClick={() => {
-                                                                setSelectedClientForEdit({
-                                                                    name: row.name,
-                                                                    transactions: row.transactions || []
-                                                                });
-                                                                setIsEditModalOpen(true);
+                                                                // setSelectedClientForEdit({
+                                                                //     name: row.name,
+                                                                //     transactions: row.transactions || []
+                                                                // });
+                                                                // setIsEditModalOpen(true);
+                                                                alert('Edición temporalmente desactivada');
                                                             }}
                                                             className="w-full flex justify-center text-cyan-400 hover:text-white hover:scale-110 transition-all"
                                                         >
