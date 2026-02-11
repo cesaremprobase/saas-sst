@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { financeService } from '../../finance/services/financeService';
 import { authService } from '../../auth/services/authService';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+// import jsPDF from 'jspdf';
+// import autoTable from 'jspdf-autotable';
+// import * as XLSX from 'xlsx';
 import { getPeruDate } from '@/lib/utils/date';
 
 interface ClientDebt {
@@ -176,54 +176,23 @@ export default function AdminDashboard() {
         setProductStats(stats.slice(0, 5)); // Top 5
     };
 
-    // EXPORT FUNCTIONS
+    // EXPORT FUNCTIONS (DISABLED FOR DEBUGGING)
     const exportToPDF = () => {
-        const doc = new jsPDF();
-        doc.text(`Reporte Diario de Cobranzas - ${selectedDate}`, 14, 10);
-
-        const tableColumn = ["N°", "Cliente", "Entregado (M)", "Entregado (T)", "Pagado (M)", "Pagado (T)", "Deuda Total"];
-        const tableRows: any[] = [];
-
-        dailyMoves.forEach(row => {
-            const rowData = [
-                row.order_index,
-                row.name,
-                row.deliveredM > 0 ? row.deliveredM.toFixed(2) : '',
-                row.deliveredT > 0 ? row.deliveredT.toFixed(2) : '',
-                row.paidM > 0 ? row.paidM.toFixed(2) : '',
-                row.paidT > 0 ? row.paidT.toFixed(2) : '',
-                row.currentDebt > 0 ? row.currentDebt.toFixed(2) : '-'
-            ];
-            tableRows.push(rowData);
-        });
-
-        autoTable(doc, {
-            head: [tableColumn],
-            body: tableRows,
-            startY: 20,
-            theme: 'grid',
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [22, 160, 133] }
-        });
-
-        doc.save(`reporte_diario_${selectedDate}.pdf`);
+        alert('Export PDF Temporarily Disabled');
+        // const doc = new jsPDF();
+        // doc.text(`Reporte Diario de Cobranzas - ${selectedDate}`, 14, 10);
+        // ... (rest of PDF logic commented out) ...
     };
 
     const exportToExcel = () => {
-        const wsData = dailyMoves.map(row => ({
-            "N°": row.order_index,
-            "Cliente": row.name,
-            "Entregado Mañana": row.deliveredM,
-            "Entregado Tarde": row.deliveredT,
-            "Pagado Mañana": row.paidM,
-            "Pagado Tarde": row.paidT,
-            "Deuda Total": row.currentDebt
-        }));
-
-        const ws = XLSX.utils.json_to_sheet(wsData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Reporte Diario");
-        XLSX.writeFile(wb, `reporte_diario_${selectedDate}.xlsx`);
+        alert('Export Excel Temporarily Disabled');
+        // const wsData = dailyMoves.map(row => ({
+        //     "N°": row.order_index,
+        //     "Cliente": row.name,
+        //     // ...
+        // }));
+        // const ws = XLSX.utils.json_to_sheet(wsData);
+        // ...
     };
 
     if (loading) return (
