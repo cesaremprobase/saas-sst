@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { financeService } from '../../finance/services/financeService';
 import { authService } from '../../auth/services/authService';
-// import jsPDF from 'jspdf';
-// import autoTable from 'jspdf-autotable';
-// import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import { getPeruDate } from '@/lib/utils/date';
 
 interface ClientDebt {
@@ -16,8 +16,8 @@ interface ClientDebt {
     debt: number;
 }
 
-// import { EditTransactionModal } from '../../finance/components/EditTransactionModal';
-// import { Transaction } from '../../finance/types';
+import { EditTransactionModal } from '../../finance/components/EditTransactionModal';
+import { Transaction } from '../../finance/types';
 
 export default function AdminDashboard() {
     const router = useRouter();
@@ -36,8 +36,8 @@ export default function AdminDashboard() {
     const [totalReceivable, setTotalReceivable] = useState(0);
 
     // Modal State
-    // const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    // const [selectedClientForEdit, setSelectedClientForEdit] = useState<{ name: string, transactions: Transaction[] } | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedClientForEdit, setSelectedClientForEdit] = useState<{ name: string, transactions: Transaction[] } | null>(null);
 
     // ... existing useEffects ...
 
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
     const addLog = (msg: string) => setDebugLogs(prev => [...prev.slice(-4), `${new Date().toLocaleTimeString()}: ${msg}`]);
 
     useEffect(() => {
-        addLog('Dashboard MOUNTED (Edit DISABLED)');
+        addLog('Dashboard MOUNTED');
         // Force critical check
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL) addLog('CRITICAL: Missing Supabase URL');
 
@@ -176,23 +176,54 @@ export default function AdminDashboard() {
         setProductStats(stats.slice(0, 5)); // Top 5
     };
 
-    // EXPORT FUNCTIONS (DISABLED FOR DEBUGGING)
+    // EXPORT FUNCTIONS
     const exportToPDF = () => {
-        alert('Export PDF Temporarily Disabled');
-        // const doc = new jsPDF();
-        // doc.text(`Reporte Diario de Cobranzas - ${selectedDate}`, 14, 10);
-        // ... (rest of PDF logic commented out) ...
+        const doc = new jsPDF();
+        doc.text(`Reporte Diario de Cobranzas - ${selectedDate}`, 14, 10);
+
+        const tableColumn = ["N°", "Cliente", "Entregado (M)", "Entregado (T)", "Pagado (M)", "Pagado (T)", "Deuda Total"];
+        const tableRows: any[] = [];
+
+        dailyMoves.forEach(row => {
+            const rowData = [
+                row.order_index,
+                row.name,
+                row.deliveredM > 0 ? row.deliveredM.toFixed(2) : '',
+                row.deliveredT > 0 ? row.deliveredT.toFixed(2) : '',
+                row.paidM > 0 ? row.paidM.toFixed(2) : '',
+                row.paidT > 0 ? row.paidT.toFixed(2) : '',
+                row.currentDebt > 0 ? row.currentDebt.toFixed(2) : '-'
+            ];
+            tableRows.push(rowData);
+        });
+
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 20,
+            theme: 'grid',
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [22, 160, 133] }
+        });
+
+        doc.save(`reporte_diario_${selectedDate}.pdf`);
     };
 
     const exportToExcel = () => {
-        alert('Export Excel Temporarily Disabled');
-        // const wsData = dailyMoves.map(row => ({
-        //     "N°": row.order_index,
-        //     "Cliente": row.name,
-        //     // ...
-        // }));
-        // const ws = XLSX.utils.json_to_sheet(wsData);
-        // ...
+        const wsData = dailyMoves.map(row => ({
+            "N°": row.order_index,
+            "Cliente": row.name,
+            "Entregado Mañana": row.deliveredM,
+            "Entregado Tarde": row.deliveredT,
+            "Pagado Mañana": row.paidM,
+            "Pagado Tarde": row.paidT,
+            "Deuda Total": row.currentDebt
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(wsData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Reporte Diario");
+        XLSX.writeFile(wb, `reporte_diario_${selectedDate}.xlsx`);
     };
 
     if (loading) return (
@@ -204,7 +235,7 @@ export default function AdminDashboard() {
     return (
         <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-cyan-500/30">
             {/* Modal */}
-            {/* {selectedClientForEdit && (
+            {selectedClientForEdit && (
                 <EditTransactionModal
                     isOpen={isEditModalOpen}
                     onClose={() => {
@@ -217,7 +248,7 @@ export default function AdminDashboard() {
                     clientName={selectedClientForEdit.name}
                     transactions={selectedClientForEdit.transactions}
                 />
-            )} */}
+            )}
             {/* Navbar */}
             <nav className="border-b border-white/5 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -409,12 +440,11 @@ export default function AdminDashboard() {
                                                     {(row.deliveredM > 0 || row.deliveredT > 0 || row.itemsM?.length > 0 || row.itemsT?.length > 0) ? (
                                                         <button
                                                             onClick={() => {
-                                                                // setSelectedClientForEdit({
-                                                                //     name: row.name,
-                                                                //     transactions: row.transactions || []
-                                                                // });
-                                                                // setIsEditModalOpen(true);
-                                                                alert('Edición temporalmente desactivada');
+                                                                setSelectedClientForEdit({
+                                                                    name: row.name,
+                                                                    transactions: row.transactions || []
+                                                                });
+                                                                setIsEditModalOpen(true);
                                                             }}
                                                             className="w-full flex justify-center text-cyan-400 hover:text-white hover:scale-110 transition-all"
                                                         >
