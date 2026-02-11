@@ -149,12 +149,6 @@ export default function AdminDashboard() {
     if (loading) return (
         <div className="flex flex-col justify-center items-center h-screen bg-slate-950 gap-4 p-4">
             <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-cyan-500"></div>
-            <p className="text-cyan-500 animate-pulse font-mono font-bold">Cargando sistema...</p>
-            <div className="w-full max-w-md bg-black/50 p-4 rounded text-xs font-mono text-green-400 h-32 overflow-y-auto border border-white/10">
-                {debugLogs.map((log, i) => (
-                    <div key={i} className="border-b border-white/5 pb-1 mb-1 last:border-0">{log}</div>
-                ))}
-            </div>
         </div>
     );
 
