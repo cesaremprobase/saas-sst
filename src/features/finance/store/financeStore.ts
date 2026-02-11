@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { getPeruDate } from '@/lib/utils/date';
 
 interface FinanceState {
     selectedDate: string; // ISO Date YYYY-MM-DD
@@ -9,7 +10,7 @@ interface FinanceState {
 }
 
 export const useFinanceStore = create<FinanceState>((set) => ({
-    selectedDate: new Date().toISOString().split('T')[0],
+    selectedDate: '',
     activeTab: 'DELIVERY',
 
     setDate: (date) => set({ selectedDate: date }),

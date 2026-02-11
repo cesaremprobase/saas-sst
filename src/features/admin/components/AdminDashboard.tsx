@@ -26,7 +26,11 @@ export default function AdminDashboard() {
     const [filter, setFilter] = useState('');
     const [isAdmin, setIsAdmin] = useState(false);
     const [activeTab, setActiveTab] = useState<'overview' | 'daily' | 'debt' | 'products' | 'clients_manage' | 'products_manage' | 'reports'>('overview');
-    const [selectedDate, setSelectedDate] = useState(getPeruDate());
+    const [selectedDate, setSelectedDate] = useState('');
+
+    useEffect(() => {
+        if (!selectedDate) setSelectedDate(getPeruDate());
+    }, []);
 
     // Data States
     const [dailyMoves, setDailyMoves] = useState<any[]>([]);
@@ -45,12 +49,7 @@ export default function AdminDashboard() {
 
     // ... export functions ...
 
-    if (loading) return (
-        // ... loading spinner ...
-        <div className="flex justify-center items-center h-screen bg-slate-950">
-            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-cyan-500"></div>
-        </div>
-    );
+
 
 
 
@@ -75,7 +74,7 @@ export default function AdminDashboard() {
         // return () => clearInterval(interval);
     }, [selectedDate, activeTab]);
 
-    const checkAdmin = async () => {
+    async function checkAdmin() {
         try {
             addLog('Starting checkAdmin...');
 
@@ -108,7 +107,7 @@ export default function AdminDashboard() {
         }
     };
 
-    const loadData = async () => {
+    async function loadData() {
         try {
             addLog('Starting loadData...');
             setLoading(true);
@@ -138,7 +137,7 @@ export default function AdminDashboard() {
         }
     };
 
-    const loadDebts = async () => {
+    async function loadDebts() {
         const data = await financeService.getAllClientsWithDebt();
         setClients(data);
         const total = data.reduce((acc, curr) => acc + (curr.debt || 0), 0);
@@ -159,7 +158,7 @@ export default function AdminDashboard() {
         </div>
     );
 
-    const loadDailyData = async () => {
+    async function loadDailyData() {
         const data = await financeService.getDailyRouteSheet(selectedDate);
         setDailyMoves(data);
 
@@ -171,13 +170,13 @@ export default function AdminDashboard() {
         setDailyDeliveryValue(delivery);
     };
 
-    const loadProductStats = async () => {
+    async function loadProductStats() {
         const stats = await financeService.getProductStats();
         setProductStats(stats.slice(0, 5)); // Top 5
     };
 
     // EXPORT FUNCTIONS
-    const exportToPDF = () => {
+    function exportToPDF() {
         const doc = new jsPDF();
         doc.text(`Reporte Diario de Cobranzas - ${selectedDate}`, 14, 10);
 
@@ -209,7 +208,7 @@ export default function AdminDashboard() {
         doc.save(`reporte_diario_${selectedDate}.pdf`);
     };
 
-    const exportToExcel = () => {
+    function exportToExcel() {
         const wsData = dailyMoves.map(row => ({
             "N°": row.order_index,
             "Cliente": row.name,
