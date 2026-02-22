@@ -10,6 +10,8 @@ export function ServiceWorkerRegister() {
                     .register('/sw.js')
                     .then((registration) => {
                         console.log('SW registration successful:', registration.scope);
+                        // Forzar update si hay nueva versión
+                        registration.update();
                     })
                     .catch((err) => {
                         console.log('SW registration failed:', err);

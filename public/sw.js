@@ -3,7 +3,10 @@ const urlsToCache = [
     '/',
     '/manifest.json',
     '/icon-192x192.png',
-    '/icon-512x512.png'
+    '/icon-512x512.png',
+    '/finance',
+    '/admin',
+    '/dashboard'
 ];
 
 self.addEventListener('install', (event) => {
@@ -32,6 +35,9 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+    // No cachear peticiones a API de Supabase
+    if (event.request.url.includes('supabase')) return;
+
     // Solo cachear peticiones GET
     if (event.request.method !== 'GET') return;
 
