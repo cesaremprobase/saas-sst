@@ -9,12 +9,8 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import { getPeruDate } from '@/lib/utils/date';
 
-interface ClientDebt {
-    id: string;
-    name: string;
-    order_index: number;
-    debt: number;
-}
+// re‑use the shared type to keep logic in sync
+import { ClientDebt } from '../../finance/types';
 
 import { EditTransactionModal } from '../../finance/components/EditTransactionModal';
 import { Transaction } from '../../finance/types';
@@ -53,7 +49,10 @@ export default function AdminDashboard() {
 
 
 
+    // run once on mount
     useEffect(() => {
+        addLog('Dashboard MOUNTED');
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL) addLog('CRITICAL: Missing Supabase URL');
         checkAdmin();
     }, []);
 
@@ -61,18 +60,21 @@ export default function AdminDashboard() {
     const [debugLogs, setDebugLogs] = useState<string[]>([]);
     const addLog = (msg: string) => setDebugLogs(prev => [...prev.slice(-4), `${new Date().toLocaleTimeString()}: ${msg}`]);
 
+    // when the selected tab or date changes we only load the necessary slice
     useEffect(() => {
-        addLog('Dashboard MOUNTED');
-        // Force critical check
-        if (!process.env.NEXT_PUBLIC_SUPABASE_URL) addLog('CRITICAL: Missing Supabase URL');
+        if (!isAdmin) return;
+        addLog(`tab/date change (${activeTab}, ${selectedDate})`);
 
-        checkAdmin();
-        // const interval = setInterval(() => {
-        //     loadDailyData();
-        //     if (activeTab === 'overview' || activeTab === 'products') loadProductStats();
-        // }, 10000); 
-        // return () => clearInterval(interval);
-    }, [selectedDate, activeTab]);
+        if (activeTab === 'overview' || activeTab === 'products') {
+            loadProductStats();
+        }
+        if (activeTab === 'daily') {
+            loadDailyData();
+        }
+        if (activeTab === 'debt' || activeTab === 'clients_manage') {
+            loadDebts();
+        }
+    }, [activeTab, selectedDate, isAdmin]);
 
     async function checkAdmin() {
         try {

@@ -39,3 +39,11 @@ export interface DailyStats {
   total_paid: number;
   pending_balance: number;
 }
+
+export interface ClientDebt {
+  id: string;
+  name: string;
+  order_index: number;
+  initial_balance?: number;
+  debt: number;
+} 

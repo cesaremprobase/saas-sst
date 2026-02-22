@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
-import { Client, Transaction, TransactionType, Shift } from '../types';
+import { Client, Transaction, TransactionType, Shift, ClientDebt } from '../types';
 
 export const financeService = {
     // ==========================================
@@ -314,46 +314,22 @@ export const financeService = {
     // ==========================================
     // REPORTS (ADMIN)
     // ==========================================
+    // earlier we imported Client, Transaction, TransactionType, Shift
+    // add ClientDebt type when needed
+
     async getAllClientsWithDebt() {
         const supabase = createClient();
 
-        // Fetch clients
-        const { data: clients, error: clientsError } = await supabase
-            .from('clients')
-            .select(`
-                id, 
-                name, 
-                order_index, 
-                initial_balance
-            `)
+        // The heavy work is now pushed into a database view (`client_debt`) so
+        // the browser only receives the aggregated rows.  This avoids fetching
+        // the whole transactions table and doing a JS loop on the main thread.
+        const { data, error } = await supabase
+            .from('client_debt')
+            .select('*')
             .order('order_index', { ascending: true });
 
-        if (clientsError) throw clientsError;
-
-        // Fetch all transactions
-        const { data: transactions, error: transError } = await supabase
-            .from('transactions')
-            .select('client_id, amount, type');
-
-        if (transError) throw transError;
-
-        // Calculate Debt
-        const debtMap = new Map<string, number>();
-
-        transactions?.forEach(t => {
-            const current = debtMap.get(t.client_id) || 0;
-            if (t.type === 'DELIVERY') debtMap.set(t.client_id, current + t.amount);
-            if (t.type === 'PAYMENT') debtMap.set(t.client_id, current - t.amount);
-        });
-
-        return clients.map(c => {
-            const transactionDebt = debtMap.get(c.id) || 0;
-            const totalDebt = (c.initial_balance || 0) + transactionDebt;
-            return {
-                ...c,
-                debt: totalDebt
-            };
-        });
+        if (error) throw error;
+        return data as ClientDebt[]; // relies on new ClientDebt interface
     },
 
     async getDailyAdminReport(date: string) {
