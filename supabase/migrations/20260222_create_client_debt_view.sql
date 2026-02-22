@@ -22,3 +22,13 @@ SELECT
 FROM public.clients c
 LEFT JOIN public.transactions t ON t.client_id = c.id
 GROUP BY c.id, c.name, c.order_index, c.initial_balance;
+
+-- Enable RLS on the view
+ALTER VIEW public.client_debt SET (security_barrier = true);
+
+-- Create policy for the view
+CREATE POLICY "Users can view own client_debt or Admin can view all" ON public.client_debt
+FOR SELECT USING (
+  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  OR EXISTS (SELECT 1 FROM public.clients c WHERE c.id = client_debt.id AND c.user_id = auth.uid())
+);

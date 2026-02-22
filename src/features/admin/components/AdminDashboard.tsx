@@ -140,10 +140,15 @@ export default function AdminDashboard() {
     };
 
     async function loadDebts() {
-        const data = await financeService.getAllClientsWithDebt();
-        setClients(data);
-        const total = data.reduce((acc, curr) => acc + (curr.debt || 0), 0);
-        setTotalReceivable(total);
+        try {
+            const data = await financeService.getAllClientsWithDebt();
+            setClients(data);
+            const total = data.reduce((acc, curr) => acc + (curr.debt || 0), 0);
+            setTotalReceivable(total);
+        } catch (error) {
+            console.error('Error loading clients:', error);
+            alert('Error cargando clientes: ' + (error as any).message);
+        }
     };
 
     // ... (rest of code)
