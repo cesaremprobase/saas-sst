@@ -22,11 +22,7 @@ export default function AdminDashboard() {
     const [filter, setFilter] = useState('');
     const [isAdmin, setIsAdmin] = useState(false);
     const [activeTab, setActiveTab] = useState<'overview' | 'daily' | 'debt' | 'products' | 'clients_manage' | 'products_manage' | 'reports'>('overview');
-    const [selectedDate, setSelectedDate] = useState('');
-
-    useEffect(() => {
-        if (!selectedDate) setSelectedDate(getPeruDate());
-    }, []);
+    const [selectedDate, setSelectedDate] = useState(getPeruDate());
 
     // Data States
     const [dailyMoves, setDailyMoves] = useState<any[]>([]);
